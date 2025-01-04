@@ -1,0 +1,28 @@
+{
+  "name": "@jvvan/discord.js-menu",
+  "version": "1.0.0",
+  "description": "A utility for creating interactive menus with discord.js",
+  "main": "dist/index.js",
+  "private": false,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jvvan/discord.js-menu.git"
+  },
+  "keywords": [
+    "discord.js"
+  ],
+  "author": "jvvan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jvvan/discord.js-menu/issues"
+  },
+  "homepage": "https://github.com/jvvan/discord.js-menu#readme",
+  "devDependencies": {
+    "discord.js": "^14.16.3",
+    "typescript": "^5.7.2"
+  }
+}
