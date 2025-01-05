@@ -1,7 +1,10 @@
 import {
   ActionRowBuilder,
+  ChatInputCommandInteraction,
+  Client,
   CollectedInteraction,
   InteractionCollector,
+  InteractionResponse,
   Message,
   MessageActionRowComponentBuilder,
   RepliableInteraction,
@@ -23,6 +26,7 @@ export class Menu<State> {
   public activePage?: MenuPage<State>;
   public history: MenuPage<State>[] = [];
 
+  public interaction?: InteractionResponse;
   public message?: Message;
   private collector?: InteractionCollector<CollectedInteraction>;
 
@@ -69,7 +73,7 @@ export class Menu<State> {
   }
 
   private setupCollector() {
-    this.collector = new InteractionCollector(this.message!.client, {
+    this.collector = new InteractionCollector(this.message?.client as Client<true>, {
       message: this.message!,
       time: this.time,
     });
@@ -90,6 +94,9 @@ export class Menu<State> {
       } else if (interaction.isChannelSelectMenu()) {
         await this.activePage?.handleChannelSelectMenu?.(interaction);
       }
+
+      this.collector?.resetTimer();
+      this.message = await this.interaction?.fetch();
     });
 
     this.collector.on("end", async () => {
@@ -98,35 +105,31 @@ export class Menu<State> {
   }
 
   private async cleanup() {
-    if (!this.message) {
+    if (!this.interaction || !this.message) {
       throw new MenuError("There is no message to cleanup");
     }
 
-    this.collector?.stop();
+    const components = this.message.components.map((row) =>
+      ActionRowBuilder.from<MessageActionRowComponentBuilder>(row),
+    );
 
-    if (!this.message.flags.has("Ephemeral")) {
-      const components = this.message.components.map((row) =>
-        ActionRowBuilder.from<MessageActionRowComponentBuilder>(row),
-      );
-
-      for (const row of components) {
-        for (const component of row.components) {
-          component.setDisabled(true);
-        }
+    for (const row of components) {
+      for (const component of row.components) {
+        component.setDisabled(true);
       }
-
-      this.message.edit({
-        components,
-      });
     }
+
+    this.interaction?.edit({
+      components,
+    });
   }
 
-  public async start(interaction: RepliableInteraction) {
-    this.message = await interaction.reply({
+  public async start(interaction: ChatInputCommandInteraction) {
+    this.interaction = await interaction.reply({
       ...(await this.render()),
-      fetchReply: true,
       ephemeral: this.ephemeral,
     });
+    this.message = await this.interaction.fetch();
 
     this.setupCollector();
 
@@ -134,6 +137,6 @@ export class Menu<State> {
   }
 
   public async stop() {
-    await this.cleanup();
+    await this.collector?.stop()
   }
 }
