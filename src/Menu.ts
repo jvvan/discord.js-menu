@@ -7,7 +7,6 @@ import {
   InteractionResponse,
   Message,
   MessageActionRowComponentBuilder,
-  RepliableInteraction,
 } from "discord.js";
 import { MenuError } from "./MenuError";
 import { MenuPage } from "./MenuPage";
