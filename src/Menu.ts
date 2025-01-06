@@ -102,8 +102,6 @@ export class Menu<State> {
       throw new MenuError("There is no message to cleanup");
     }
 
-    this.collector?.stop();
-
     if (!this.message.flags.has("Ephemeral")) {
       const components = this.message.components.map((row) =>
         ActionRowBuilder.from<MessageActionRowComponentBuilder>(row),
@@ -134,6 +132,6 @@ export class Menu<State> {
   }
 
   public async stop() {
-    await this.cleanup();
+    this.collector?.stop("stop");
   }
 }
