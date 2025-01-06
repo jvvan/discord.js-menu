@@ -35,18 +35,18 @@ export abstract class MenuPage<State = unknown> {
   ): Awaited<unknown>;
 
   public handleStringSelectMenu?(
-    interaction: StringSelectMenuInteraction,
+    interaction: StringSelectMenuInteraction<"cached">,
   ): Awaited<unknown>;
 
   public handleUserSelectMenu?(
-    interaction: UserSelectMenuInteraction,
+    interaction: UserSelectMenuInteraction<"cached">,
   ): Awaited<unknown>;
 
   public handleRoleSelectMenu?(
-    interaction: RoleSelectMenuInteraction,
+    interaction: RoleSelectMenuInteraction<"cached">,
   ): Awaited<unknown>;
 
   public handleChannelSelectMenu?(
-    interaction: ChannelSelectMenuInteraction,
+    interaction: ChannelSelectMenuInteraction<"cached">,
   ): Awaited<unknown>;
 }
