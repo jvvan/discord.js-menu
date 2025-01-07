@@ -13,7 +13,7 @@ const client = new Client({
   intents: [IntentsBitField.Flags.Guilds],
 });
 
-type GetDataFunction = (page: number) => Promise<string[]>;
+type GetDataFunction = (page: number) => Promise<MenuPageRenderResult>;
 
 interface PaginationPageOptions {
   getData: GetDataFunction;
@@ -34,11 +34,7 @@ class PaginationPage extends MenuPage {
 
   async render() {
     return {
-      embeds: [
-        new EmbedBuilder()
-          .setTitle(`Page ${this.currentPage + 1}`)
-          .setDescription((await this.getData(this.currentPage)).join("\n")),
-      ],
+      ...(await this.getData(this.currentPage)),
       components: [
         new ActionRowBuilder<ButtonBuilder>().setComponents(
           new ButtonBuilder()
@@ -68,7 +64,18 @@ class PaginationPage extends MenuPage {
 }
 
 async function getData(page: number) {
-  return Array.from({ length: 10 }, (_, i) => `Item ${i + 1 + page * 10}`);
+  return {
+    embeds: [
+      new EmbedBuilder()
+        .setTitle(`Page ${page + 1}`)
+        .setDescription(
+          Array.from(
+            { length: 10 },
+            (_, i) => `Item ${page * 10 + i + 1}`,
+          ).join("\n"),
+        ),
+    ],
+  };
 }
 
 client.on("interactionCreate", async (interaction) => {
