@@ -13,6 +13,8 @@ export type MenuPageRenderResult = InteractionEditReplyOptions & {
   content?: string | undefined;
 };
 
+type Awaitable<T> = PromiseLike<T> | T;
+
 export abstract class MenuPage<State = unknown> {
   public menu!: Menu<State>;
 
@@ -24,29 +26,29 @@ export abstract class MenuPage<State = unknown> {
     return this.menu.state;
   }
 
-  public abstract render(): Awaited<MenuPageRenderResult>;
+  public abstract render(): Awaitable<MenuPageRenderResult>;
 
   public handleButton?(
     interaction: ButtonInteraction<"cached">,
-  ): Awaited<unknown>;
+  ): Awaitable<unknown>;
 
   public handleModal?(
     interaction: ModalMessageModalSubmitInteraction<"cached">,
-  ): Awaited<unknown>;
+  ): Awaitable<unknown>;
 
   public handleStringSelectMenu?(
     interaction: StringSelectMenuInteraction<"cached">,
-  ): Awaited<unknown>;
+  ): Awaitable<unknown>;
 
   public handleUserSelectMenu?(
     interaction: UserSelectMenuInteraction<"cached">,
-  ): Awaited<unknown>;
+  ): Awaitable<unknown>;
 
   public handleRoleSelectMenu?(
     interaction: RoleSelectMenuInteraction<"cached">,
-  ): Awaited<unknown>;
+  ): Awaitable<unknown>;
 
   public handleChannelSelectMenu?(
     interaction: ChannelSelectMenuInteraction<"cached">,
-  ): Awaited<unknown>;
+  ): Awaitable<unknown>;
 }
