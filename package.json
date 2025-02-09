@@ -1,6 +1,6 @@
 {
   "name": "@jvvan/discord.js-menu",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "A utility for creating interactive menus with discord.js",
   "main": "dist/index.js",
   "scripts": {

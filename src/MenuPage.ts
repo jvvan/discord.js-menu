@@ -2,6 +2,7 @@ import type {
   ButtonInteraction,
   ChannelSelectMenuInteraction,
   InteractionEditReplyOptions,
+  MentionableSelectMenuInteraction,
   ModalMessageModalSubmitInteraction,
   RoleSelectMenuInteraction,
   StringSelectMenuInteraction,
@@ -50,5 +51,9 @@ export abstract class MenuPage<State = unknown> {
 
   public handleChannelSelectMenu?(
     interaction: ChannelSelectMenuInteraction<"cached">,
+  ): Awaitable<unknown>;
+
+  public handleMentionableSelectMenu?(
+    interaction: MentionableSelectMenuInteraction<"cached">,
   ): Awaitable<unknown>;
 }

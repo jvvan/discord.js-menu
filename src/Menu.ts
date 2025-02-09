@@ -89,6 +89,8 @@ export class Menu<State> {
         await this.activePage?.handleRoleSelectMenu?.(interaction);
       } else if (interaction.isChannelSelectMenu()) {
         await this.activePage?.handleChannelSelectMenu?.(interaction);
+      } else if (interaction.isMentionableSelectMenu()) {
+        await this.activePage?.handleMentionableSelectMenu?.(interaction);
       }
     });
 
