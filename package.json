@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/jvvan/discord.js-menu#readme",
   "devDependencies": {
-    "discord.js": "^14.16.3",
+    "discord.js": "^14.17.3",
     "typescript": "^5.7.2"
   },
   "files": [

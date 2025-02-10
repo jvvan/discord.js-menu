@@ -25,8 +25,11 @@ class PaginationPage extends MenuPage {
   maxPages: number;
   currentPage: number;
 
-  constructor({ getData, maxPages }: PaginationPageOptions) {
-    super();
+  constructor(
+    menu: Menu<unknown>,
+    { getData, maxPages }: PaginationPageOptions,
+  ) {
+    super(menu);
     this.getData = getData;
     this.maxPages = maxPages;
     this.currentPage = 0;
@@ -87,10 +90,11 @@ client.on("interactionCreate", async (interaction) => {
       time: 60 * 1000,
     })
       .setPage(
-        new PaginationPage({
-          getData,
-          maxPages: 10,
-        }),
+        (menu) =>
+          new PaginationPage(menu, {
+            getData,
+            maxPages: 10,
+          }),
       )
       .start(interaction);
   }

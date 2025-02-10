@@ -20,8 +20,8 @@ class PaginationPage extends MenuPage {
   pages: MenuPageRenderResult[];
   currentPage: number;
 
-  constructor({ pages }: PaginationPageOptions) {
-    super();
+  constructor(menu: Menu<unknown>, { pages }: PaginationPageOptions) {
+    super(menu);
     this.pages = pages;
     this.currentPage = 0;
   }
@@ -66,16 +66,17 @@ client.on("interactionCreate", async (interaction) => {
       time: 60 * 1000,
     })
       .setPage(
-        new PaginationPage({
-          pages: [
-            {
-              content: "Page 1",
-            },
-            {
-              content: "Page 2",
-            },
-          ],
-        }),
+        (menu) =>
+          new PaginationPage(menu, {
+            pages: [
+              {
+                content: "Page 1",
+              },
+              {
+                content: "Page 2",
+              },
+            ],
+          }),
       )
       .start(interaction);
   }

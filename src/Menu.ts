@@ -1,5 +1,6 @@
 import {
   ActionRowBuilder,
+  Awaitable,
   CollectedInteraction,
   InteractionCollector,
   Message,
@@ -8,20 +9,29 @@ import {
 } from "discord.js";
 import { MenuError } from "./MenuError";
 import { MenuPage } from "./MenuPage";
+import { MenuHistory } from "./history/MenuHistory";
+import { NoHistory } from "./history/NoHistory";
+
+export type InteractionFilter = (
+  interaction: CollectedInteraction<"cached">,
+) => Awaitable<boolean>;
 
 export interface MenuOptions<State> {
   state: State;
   time?: number;
   ephemeral?: boolean;
+  filter?: InteractionFilter;
+  history?: MenuHistory;
 }
 
 export class Menu<State> {
   public state: State;
-  public ephemeral: boolean = false;
   public time: number = 5 * 60 * 1000;
+  public ephemeral: boolean = false;
+  public filter: InteractionFilter;
 
   public activePage?: MenuPage<State>;
-  public history: MenuPage<State>[] = [];
+  public history: MenuHistory;
 
   public message?: Message;
   private collector?: InteractionCollector<CollectedInteraction>;
@@ -36,26 +46,36 @@ export class Menu<State> {
     if (options.ephemeral) {
       this.ephemeral = options.ephemeral;
     }
-  }
 
-  public setPage(page: MenuPage<State>) {
-    if (this.activePage) {
-      this.history.push(this.activePage);
+    if (options.filter) {
+      this.filter = options.filter;
+    } else {
+      this.filter = () => true;
     }
 
-    page.setMenu(this);
-    this.activePage = page;
+    if (options.history) {
+      this.history = options.history;
+    } else {
+      this.history = new NoHistory();
+    }
+  }
+
+  public setPage(
+    page: MenuPage<State> | ((menu: Menu<State>) => MenuPage<State>),
+  ) {
+    if (this.activePage) {
+      this.history.push(this);
+    }
+
+    const resolvedPage = typeof page === "function" ? page(this) : page;
+
+    this.activePage = resolvedPage;
 
     return this;
   }
 
   public back() {
-    const page = this.history.pop();
-    if (!page) {
-      throw new MenuError("There is no page to go back to");
-    }
-
-    this.activePage = page;
+    this.history.pop(this);
 
     return this;
   }
@@ -69,28 +89,55 @@ export class Menu<State> {
   }
 
   private setupCollector() {
-    this.collector = new InteractionCollector(this.message!.client, {
-      message: this.message!,
+    if (!this.message) {
+      throw new MenuError("Cannot setup collector without a message");
+    }
+
+    this.collector = new InteractionCollector(this.message.client, {
+      message: this.message,
       time: this.time,
     });
 
     this.collector.on("collect", async (interaction) => {
-      if (!interaction.inCachedGuild()) return;
+      if (!this.activePage || !interaction.inCachedGuild()) return;
 
-      if (interaction.isButton()) {
-        await this.activePage?.handleButton?.(interaction);
-      } else if (interaction.isModalSubmit() && interaction.isFromMessage()) {
-        await this.activePage?.handleModal?.(interaction);
-      } else if (interaction.isStringSelectMenu()) {
-        await this.activePage?.handleStringSelectMenu?.(interaction);
-      } else if (interaction.isUserSelectMenu()) {
-        await this.activePage?.handleUserSelectMenu?.(interaction);
-      } else if (interaction.isRoleSelectMenu()) {
-        await this.activePage?.handleRoleSelectMenu?.(interaction);
-      } else if (interaction.isChannelSelectMenu()) {
-        await this.activePage?.handleChannelSelectMenu?.(interaction);
-      } else if (interaction.isMentionableSelectMenu()) {
-        await this.activePage?.handleMentionableSelectMenu?.(interaction);
+      if (!(await this.filter(interaction))) return;
+
+      if (interaction.isButton() && this.activePage.handleButton) {
+        await this.activePage.handleButton(interaction);
+      } else if (
+        interaction.isModalSubmit() &&
+        interaction.isFromMessage() &&
+        this.activePage.handleModal
+      ) {
+        await this.activePage.handleModal(interaction);
+      } else if (
+        interaction.isStringSelectMenu() &&
+        this.activePage.handleStringSelectMenu
+      ) {
+        await this.activePage.handleStringSelectMenu(interaction);
+      } else if (
+        interaction.isUserSelectMenu() &&
+        this.activePage.handleUserSelectMenu
+      ) {
+        await this.activePage.handleUserSelectMenu(interaction);
+      } else if (
+        interaction.isRoleSelectMenu() &&
+        this.activePage.handleRoleSelectMenu
+      ) {
+        await this.activePage.handleRoleSelectMenu(interaction);
+      } else if (
+        interaction.isChannelSelectMenu() &&
+        this.activePage.handleChannelSelectMenu
+      ) {
+        await this.activePage.handleChannelSelectMenu(interaction);
+      } else if (
+        interaction.isMentionableSelectMenu() &&
+        this.activePage.handleMentionableSelectMenu
+      ) {
+        await this.activePage.handleMentionableSelectMenu(interaction);
+      } else if (this.activePage.handle) {
+        await this.activePage.handle(interaction);
       }
     });
 
@@ -101,7 +148,7 @@ export class Menu<State> {
 
   private async cleanup() {
     if (!this.message) {
-      throw new MenuError("There is no message to cleanup");
+      return;
     }
 
     if (!this.message.flags.has("Ephemeral")) {
@@ -122,11 +169,21 @@ export class Menu<State> {
   }
 
   public async start(interaction: RepliableInteraction) {
-    this.message = await interaction.reply({
-      ...(await this.render()),
-      fetchReply: true,
-      ephemeral: this.ephemeral,
-    });
+    if (interaction.deferred || interaction.replied) {
+      this.message = await interaction.editReply(await this.render());
+    } else {
+      const response = await interaction.reply({
+        ...(await this.render()),
+        withResponse: true,
+        ephemeral: this.ephemeral,
+      });
+
+      if (!response.resource?.message) {
+        throw new MenuError("Failed to reply to the interaction");
+      }
+
+      this.message = response.resource.message;
+    }
 
     this.setupCollector();
 

@@ -1,6 +1,8 @@
 import type {
+  Awaitable,
   ButtonInteraction,
   ChannelSelectMenuInteraction,
+  CollectedInteraction,
   InteractionEditReplyOptions,
   MentionableSelectMenuInteraction,
   ModalMessageModalSubmitInteraction,
@@ -14,12 +16,10 @@ export type MenuPageRenderResult = InteractionEditReplyOptions & {
   content?: string | undefined;
 };
 
-type Awaitable<T> = PromiseLike<T> | T;
-
 export abstract class MenuPage<State = unknown> {
-  public menu!: Menu<State>;
+  public menu: Menu<State>;
 
-  public setMenu(menu: Menu<State>) {
+  public constructor(menu: Menu<State>) {
     this.menu = menu;
   }
 
@@ -28,6 +28,16 @@ export abstract class MenuPage<State = unknown> {
   }
 
   public abstract render(): Awaitable<MenuPageRenderResult>;
+
+  public filter(
+    interaction: CollectedInteraction<"cached">,
+  ): Awaitable<boolean> {
+    return true;
+  }
+
+  public handle?(
+    interaction: CollectedInteraction<"cached">,
+  ): Awaitable<unknown>;
 
   public handleButton?(
     interaction: ButtonInteraction<"cached">,
