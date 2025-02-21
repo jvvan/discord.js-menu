@@ -1,9 +1,9 @@
 import type {
   Awaitable,
+  BaseMessageOptions,
   ButtonInteraction,
   ChannelSelectMenuInteraction,
   CollectedInteraction,
-  InteractionEditReplyOptions,
   MentionableSelectMenuInteraction,
   ModalMessageModalSubmitInteraction,
   RoleSelectMenuInteraction,
@@ -12,7 +12,7 @@ import type {
 } from "discord.js";
 import type { Menu } from "./Menu";
 
-export type MenuPageRenderResult = InteractionEditReplyOptions & {
+export type MenuPageRenderResult = BaseMessageOptions & {
   content?: string | undefined;
 };
 

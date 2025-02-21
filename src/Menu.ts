@@ -175,7 +175,6 @@ export class Menu<State> {
       const response = await interaction.reply({
         ...(await this.render()),
         withResponse: true,
-        ephemeral: this.ephemeral,
       });
 
       if (!response.resource?.message) {
