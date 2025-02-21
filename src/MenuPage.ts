@@ -1,7 +1,9 @@
 import type {
+  Awaitable,
+  BaseMessageOptions,
   ButtonInteraction,
   ChannelSelectMenuInteraction,
-  InteractionEditReplyOptions,
+  CollectedInteraction,
   MentionableSelectMenuInteraction,
   ModalMessageModalSubmitInteraction,
   RoleSelectMenuInteraction,
@@ -10,16 +12,14 @@ import type {
 } from "discord.js";
 import type { Menu } from "./Menu";
 
-export type MenuPageRenderResult = InteractionEditReplyOptions & {
+export type MenuPageRenderResult = BaseMessageOptions & {
   content?: string | undefined;
 };
 
-type Awaitable<T> = PromiseLike<T> | T;
-
 export abstract class MenuPage<State = unknown> {
-  public menu!: Menu<State>;
+  public menu: Menu<State>;
 
-  public setMenu(menu: Menu<State>) {
+  public constructor(menu: Menu<State>) {
     this.menu = menu;
   }
 
@@ -28,6 +28,16 @@ export abstract class MenuPage<State = unknown> {
   }
 
   public abstract render(): Awaitable<MenuPageRenderResult>;
+
+  public filter(
+    interaction: CollectedInteraction<"cached">,
+  ): Awaitable<boolean> {
+    return true;
+  }
+
+  public handle?(
+    interaction: CollectedInteraction<"cached">,
+  ): Awaitable<unknown>;
 
   public handleButton?(
     interaction: ButtonInteraction<"cached">,

@@ -49,7 +49,7 @@ client.on("interactionCreate", async (interaction) => {
       },
       time: 60 * 1000,
     })
-      .setPage(new CounterPage())
+      .setPage((menu) => new CounterPage(menu))
       .start(interaction);
   }
 });
